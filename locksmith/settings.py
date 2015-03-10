@@ -173,7 +173,7 @@ SOCIAL_AUTH_ASSOCIATION_HANDLE_LENGTH = 125
 # although not all choices may be available on all operating systems.
 # In a Windows environment this must be set to your system time zone.
 try: TIME_ZONE = os.environ['TIMEZONE']
-except KeyError: TIME_ZONE = 'America/Chicago'
+except KeyError: TIME_ZONE = os.environ['TIMEZONE']
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
