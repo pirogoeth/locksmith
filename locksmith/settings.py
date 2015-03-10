@@ -26,14 +26,11 @@ process = subprocess.Popen(['git', 'rev-parse', 'HEAD'], stdout=subprocess.PIPE)
 out, err = process.communicate()
 
 APP_REVISION = out[:6]
-try:
-    ADMINS = (
-        os.environ['ADMIN_FULLNAME'], os.environ['ADMIN_EMAIL']
-    )
-    ADMIN_EMAIL = os.environ['ADMIN_EMAIL']
-except KeyError:
-    ADMINS = ('', '')
-    ADMIN_EMAIL = ''
+ADMINS = (
+    ('Some Admin', 'admin@example.com'),
+)
+try: ADMIN_EMAIL = os.environ['ADMIN_EMAIL']
+except IndexExcept: ADMIN_EMAIL = ''
 
 AUTH_PROFILE_MODULE = 'accounts.UserProfile'
 MANAGERS = ADMINS
