@@ -26,10 +26,14 @@ process = subprocess.Popen(['git', 'rev-parse', 'HEAD'], stdout=subprocess.PIPE)
 out, err = process.communicate()
 
 APP_REVISION = out[:6]
-ADMINS = (
-    os.environ['ADMIN_FULLNAME'], os.environ['ADMIN_EMAIL']
-)
-ADMIN_EMAIL = os.environ['ADMIN_EMAIL']
+try:
+    ADMINS = (
+        os.environ['ADMIN_FULLNAME'], os.environ['ADMIN_EMAIL']
+    )
+    ADMIN_EMAIL = os.environ['ADMIN_EMAIL']
+except KeyError:
+    ADMINS = ('', '')
+    ADMIN_EMAIL = ''
 
 AUTH_PROFILE_MODULE = 'accounts.UserProfile'
 MANAGERS = ADMINS
@@ -39,11 +43,14 @@ BCRYPT_ROUNDS = 12
 BCRYPT_MIGRATE = True
 
 SENTRY_DSN = ''
-if os.environ['PRIVATE'] and os.environ['PRIVATE'].lower() == "yes":
-    SIGNUP_ENABLED = False
-elif os.environ['PRIVATE'] and os.environ['PRIVATE'].lower() != "yes":
-    SIGNUP_ENABLEd = True
-else:
+try:
+    if os.environ['PRIVATE'] and os.environ['PRIVATE'].lower() == "yes":
+        SIGNUP_ENABLED = False
+    elif os.environ['PRIVATE'] and os.environ['PRIVATE'].lower() != "yes":
+        SIGNUP_ENABLEd = True
+    else:
+        SIGNUP_ENABLED = False
+except KeyError:
     SIGNUP_ENABLED = False
 
 AWS_ACCESS_KEY_ID = ''
@@ -52,32 +59,56 @@ AWS_STORAGE_BUCKET_NAME = 'locksmith'
 
 CACHE_ENCRYPTION_KEY = '{0}:key'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.environ['DB_PATH'],
-        'USER': '',
-        'PASSWORD': '',
-        'HOST': '',
-        'PORT': '',
+try:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.environ['DB_PATH'],
+            'USER': '',
+            'PASSWORD': '',
+            'HOST': '',
+            'PORT': '',
+        }
     }
-}
+except KeyError:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': '',
+            'USER': '',
+            'PASSWORD': '',
+            'HOST': '',
+            'PORT': '',
+        }
+    }
+
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     }
 }
-if os.environ['REDIS_ENABLE'].lower() == 'yes':
+
+try:
+    if os.environ['REDIS_ENABLE'].lower() == 'yes':
+        RQ_QUEUES = {
+            'default': {
+                'HOST': os.environ['REDIS_HOST'] or '',
+                'PORT': os.environ['REDIS_PORT'] or '',
+                'DB': os.environ['REDIS_DB'] or '',
+                'PASSWORD': os.environ['REDIS_PASSWORD'] or ''
+            }
+        }
+    else:
+        RQ_QUEUES = {
+        }
+except KeyError:
     RQ_QUEUES = {
         'default': {
-            'HOST': os.environ['REDIS_HOST'] or '',
-            'PORT': os.environ['REDIS_PORT'] or '',
-            'DB': os.environ['REDIS_DB'] or '',
-            'PASSWORD': os.environ['REDIS_PASSWORD'] or ''
+            'HOST': '',
+            'PORT': '',
+            'DB': '',
+            'PASSWORD': ''
         }
-    }
-else:
-    RQ_QUEUES = {
     }
 
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
@@ -144,7 +175,8 @@ SOCIAL_AUTH_ASSOCIATION_HANDLE_LENGTH = 125
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # although not all choices may be available on all operating systems.
 # In a Windows environment this must be set to your system time zone.
-TIME_ZONE = os.environ['TIMEZONE']
+try: TIME_ZONE = os.environ['TIMEZONE']
+except KeyError: TIME_ZONE = os.environ['TIMEZONE']
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
