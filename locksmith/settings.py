@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # Django settings for locksmith project.
+
 import os
 import subprocess
 PROJECT_ROOT = os.path.join(os.path.dirname(__file__), '../')
@@ -26,9 +27,9 @@ out, err = process.communicate()
 
 APP_REVISION = out[:6]
 ADMINS = (
-    ('Evan Hazlett', 'ejhazlett@gmail.com'),
+    os.environ['ADMIN_FULLNAME'], os.environ['ADMIN_EMAIL']
 )
-ADMIN_EMAIL = 'support@vitasso.com'
+ADMIN_EMAIL = os.environ['ADMIN_EMAIL']
 
 AUTH_PROFILE_MODULE = 'accounts.UserProfile'
 MANAGERS = ADMINS
@@ -38,7 +39,12 @@ BCRYPT_ROUNDS = 12
 BCRYPT_MIGRATE = True
 
 SENTRY_DSN = ''
-SIGNUP_ENABLED = True
+if os.environ['PRIVATE'] and os.environ['PRIVATE'].lower() == "yes":
+    SIGNUP_ENABLED = False
+elif os.environ['PRIVATE'] and os.environ['PRIVATE'].lower() != "yes":
+    SIGNUP_ENABLEd = True
+else:
+    SIGNUP_ENABLED = False
 
 AWS_ACCESS_KEY_ID = ''
 AWS_SECRET_ACCESS_KEY = ''
@@ -46,74 +52,32 @@ AWS_STORAGE_BUCKET_NAME = 'locksmith'
 
 CACHE_ENCRYPTION_KEY = '{0}:key'
 
-
-# arcus cloud settings
-if 'VCAP_SERVICES' in os.environ:
-    import json
-    vcap_services = json.loads(os.environ['VCAP_SERVICES'])
-    mysql_srv = vcap_services['mysql-5.1'][0]
-    redis_srv = vcap_services['redis-2.6'][0]
-    memcached_srv = vcap_services['memcached-1.4'][0]
-    elasticsearch_srv = vcap_services['elasticsearch-0.19'][0]
-    mysql_creds = mysql_srv['credentials']
-    redis_creds = redis_srv['credentials']
-    memcached_creds = memcached_srv['credentials']
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': mysql_creds['name'],
-            'USER': mysql_creds['user'],
-            'PASSWORD': mysql_creds['password'],
-            'HOST': mysql_creds['hostname'],
-            'PORT': mysql_creds['port'],
-        }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.environ['DB_PATH'],
+        'USER': '',
+        'PASSWORD': '',
+        'HOST': '',
+        'PORT': '',
     }
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-            'LOCATION': '{0}:{1}'.format(memcached_creds['host'],
-                memcached_creds['port']),
-        }
+}
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     }
-    REDIS_HOST = redis_creds['host']
-    REDIS_PORT = redis_creds['port']
-    REDIS_DB = 0
-    REDIS_PASSWORD = redis_creds['password']
+}
+if os.environ['REDIS_ENABLE'].lower() == 'yes':
     RQ_QUEUES = {
         'default': {
-            'HOST': REDIS_HOST,
-            'PORT': REDIS_PORT,
-            'DB': REDIS_DB,
-            'PASSWORD': REDIS_PASSWORD,
+            'HOST': os.environ['REDIS_HOST'] or '',
+            'PORT': os.environ['REDIS_PORT'] or '',
+            'DB': os.environ['REDIS_DB'] or '',
+            'PASSWORD': os.environ['REDIS_PASSWORD'] or ''
         }
     }
 else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': 'locksmith.db',
-            'USER': '',
-            'PASSWORD': '',
-            'HOST': '',
-            'PORT': '',
-        }
-    }
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        }
-    }
-    REDIS_HOST = '127.0.0.1'
-    REDIS_PORT = 6739
-    REDIS_DB = 0
-    REDIS_PASSWORD = None
     RQ_QUEUES = {
-        'default': {
-            'HOST': REDIS_HOST,
-            'PORT': REDIS_PORT,
-            'DB': REDIS_DB,
-            'PASSWORD': REDIS_PASSWORD,
-        }
     }
 
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
@@ -180,7 +144,7 @@ SOCIAL_AUTH_ASSOCIATION_HANDLE_LENGTH = 125
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # although not all choices may be available on all operating systems.
 # In a Windows environment this must be set to your system time zone.
-TIME_ZONE = 'America/New_York'
+TIME_ZONE = os.environ['TIMEZONE']
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
@@ -232,7 +196,7 @@ STATICFILES_FINDERS = (
 )
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = 'z)h81*4eitd6k=8%&amp;i164h0fukf3p(fe8cpo*g&amp;vc2h@n8aba%'
+SECRET_KEY = os.environ['__APP_SECRET']
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
