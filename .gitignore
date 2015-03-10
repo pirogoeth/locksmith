@@ -7,3 +7,7 @@ local_settings.py
 *.log
 newrelic.ini
 *DS_Store*
+bin
+include
+lib
+share
