@@ -56,7 +56,7 @@ def group(request, uuid=None):
         context_instance=RequestContext(request))
 
 @login_required
-@require_http_methods(["POST"])
+@require_http_methods(["GET", "POST"])
 def set_key(request):
     nxt = request.GET.get('next', reverse('index'))
     key = request.POST.get('key')
